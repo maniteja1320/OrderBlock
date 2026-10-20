@@ -33,8 +33,13 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# vercel
+# vercel / netlify
 .vercel
+.netlify
+
+# local Salesforce / REA scratch (not part of the app)
+.sf/
+scripts/
 
 # typescript
 *.tsbuildinfo

@@ -1,0 +1,18 @@
+# Next.js 16 on Netlify — OpenNext adapter is applied automatically.
+# Do not pin @netlify/plugin-nextjs unless you need a specific version.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Avoid OOM on large App Router builds
+  NODE_OPTIONS = "--max-old-space-size=4096"
+
+# API routes (rankings / structure) fetch many symbols; give serverless more time.
+[functions]
+  node_bundler = "esbuild"
+
+[functions."*"]
+  timeout = 26

@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OrderBlock (local clone)
 
-## Getting Started
+A full-stack recreation of the [OrderBlock](https://order-block.com) trading terminal for Indian F&O stocks — live strength rankings, order-block / liquidity charts, sector flow, market breadth, and a trading journal.
 
-First, run the development server:
+> Not affiliated with Options Oracle / order-block.com. Built from publicly described product behaviour and the published strength formula.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+
+- **Landing, login, about, updates, disclosures, terms** pages
+- **Live terminal** scanning 180+ NSE F&O equities via Yahoo Finance (`.NS`)
+- **Bullish / Bearish boards** ranked by one-directional intraday strength
+- **Market scatter, breadth bar, sector flow**
+- **Popup charts** with order-block zones (Z) and S1 / R1 / R2 / liquidity levels
+- **Trading journal** with P&L calendar heatmap (localStorage)
+- **Light / dark theme**, mobile-friendly layout
+- Auto-refresh every **60 seconds**
+
+## Strength formula (disclosed method)
+
+```
+strength = today's one-directional move from the open ÷ average daily move
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A score is non-zero only when travel on one side of the open is **more than 2×** the other side.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Run locally
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000), then go to **Terminal**.
 
-To learn more about Next.js, take a look at the following resources:
+First rankings load can take **30–90 seconds** while quotes are fetched in parallel.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Data source: Yahoo Finance public chart API (may be delayed; not an exchange feed).
+- Guest login demo code: `1234`
+- No broker credentials are ever requested.
+- Not investment advice. Derivatives trading is high risk.
