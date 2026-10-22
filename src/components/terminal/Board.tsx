@@ -8,16 +8,32 @@ interface Props {
   rows: RankedStock[];
   onSelect: (symbol: string) => void;
   selected?: string | null;
+  /** When set, highlight board rows in this sector and dim the rest. */
+  highlightSector?: string | null;
 }
 
-export function Board({ title, side, rows, onSelect, selected }: Props) {
+export function Board({
+  title,
+  side,
+  rows,
+  onSelect,
+  selected,
+  highlightSector = null,
+}: Props) {
   const accent = side === "bullish" ? "text-emerald-600" : "text-red-600";
+  const matchCount = highlightSector
+    ? rows.filter((r) => r.sector === highlightSector).length
+    : 0;
 
   return (
     <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)]">
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
         <h2 className={`text-sm font-semibold ${accent}`}>{title}</h2>
-        <span className="text-xs text-[var(--muted)]">Top {rows.length}</span>
+        <span className="text-xs text-[var(--muted)]">
+          {highlightSector
+            ? `${matchCount} in ${highlightSector} · Top ${rows.length}`
+            : `Top ${rows.length}`}
+        </span>
       </div>
       <ul className="divide-y divide-[var(--border)]">
         {rows.length === 0 && (
@@ -28,6 +44,10 @@ export function Board({ title, side, rows, onSelect, selected }: Props) {
         {rows.map((row) => {
           const active = selected === row.symbol;
           const entering = row.rank <= 10 && row.rankChange > 0;
+          const sectorHit =
+            highlightSector != null && row.sector === highlightSector;
+          const sectorDim =
+            highlightSector != null && row.sector !== highlightSector;
           return (
             <li key={row.symbol}>
               <button
@@ -35,7 +55,11 @@ export function Board({ title, side, rows, onSelect, selected }: Props) {
                 onClick={() => onSelect(row.symbol)}
                 className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-[var(--surface-2)] ${
                   active ? "bg-[var(--surface-2)]" : ""
-                } ${entering ? "animate-pulse bg-amber-500/10" : ""}`}
+                } ${entering && !highlightSector ? "animate-pulse bg-amber-500/10" : ""} ${
+                  sectorHit
+                    ? "bg-[var(--accent)]/15 ring-1 ring-inset ring-[var(--accent)]/40"
+                    : ""
+                } ${sectorDim ? "opacity-35" : ""}`}
               >
                 <span className="w-6 text-xs tabular-nums text-[var(--muted)]">
                   {String(row.rank).padStart(2, "0")}

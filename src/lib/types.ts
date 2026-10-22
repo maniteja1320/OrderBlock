@@ -43,10 +43,13 @@ export interface OrderBlockZone {
   side: Side;
   top: number;
   bottom: number;
+  /** Order-block candle open time (unix sec). */
   time: number;
   label: "Z";
   /** True once a later candle closes beyond the zone. */
   confirmed: boolean;
+  /** Confirming candle open time (unix sec); set when confirmed. */
+  confirmTime?: number;
   isCurrent: boolean;
 }
 

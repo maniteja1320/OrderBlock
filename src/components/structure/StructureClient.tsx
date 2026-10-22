@@ -197,6 +197,13 @@ export function StructureClient() {
   );
 
   const statusLine = data?.marketStatus.label ?? "Loading…";
+  const refreshedLine = data?.updatedAt
+    ? `refreshed ${new Date(data.updatedAt).toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour: "2-digit",
+        minute: "2-digit",
+      })} IST`
+    : null;
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-[#05070c] text-white">
@@ -210,9 +217,12 @@ export function StructureClient() {
               Every F&amp;O stock and NIFTY, BANKNIFTY, SENSEX: displacement,
               structure, zones and liquidity — BOS / CHOCH from 5m swings
             </p>
+            <p className="mt-1 text-[11px] text-white/50">
+              {statusLine}
+              {refreshedLine && <> · {refreshedLine}</>}
+            </p>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-white/50">
-            <span className="uppercase tracking-wide">{statusLine}</span>
             <button
               type="button"
               onClick={() => load(true)}

@@ -13,6 +13,7 @@ export function TerminalClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [highlightSector, setHighlightSector] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   const load = useCallback(async (force = false) => {
@@ -160,7 +161,11 @@ export function TerminalClient() {
               <MarketScatter data={data} />
               <BreadthBar breadth={data.breadth} />
             </div>
-            <SectorPanel sectors={data.sectors} />
+            <SectorPanel
+              sectors={data.sectors}
+              selectedSector={highlightSector}
+              onSelectSector={setHighlightSector}
+            />
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -170,6 +175,7 @@ export function TerminalClient() {
               rows={data.bullish}
               selected={selected}
               onSelect={setSelected}
+              highlightSector={highlightSector}
             />
             <Board
               title="Bearish"
@@ -177,6 +183,7 @@ export function TerminalClient() {
               rows={data.bearish}
               selected={selected}
               onSelect={setSelected}
+              highlightSector={highlightSector}
             />
           </div>
 

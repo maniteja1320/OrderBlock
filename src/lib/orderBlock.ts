@@ -68,6 +68,7 @@ export function detectOrderBlocks(candles: Candle[], side: Side): OrderBlockZone
           time: ob.time,
           label: "Z",
           confirmed: true,
+          confirmTime: confirm.time,
           isCurrent: false,
         });
       }
@@ -91,6 +92,7 @@ export function detectOrderBlocks(candles: Candle[], side: Side): OrderBlockZone
           time: ob.time,
           label: "Z",
           confirmed: true,
+          confirmTime: confirm.time,
           isCurrent: false,
         });
       }
