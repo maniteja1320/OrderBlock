@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FlowBoardResponse, FlowRow } from "@/lib/flowBoard";
+import { isWeekdayMarketHours } from "@/lib/marketHours";
 import { SectorPanel } from "@/components/terminal/SectorPanel";
 import { StockSheet } from "@/components/terminal/StockSheet";
 
@@ -132,7 +133,9 @@ export function FlowClient() {
 
   useEffect(() => {
     load(true);
-    const id = setInterval(() => load(false), 60_000);
+    const id = setInterval(() => {
+      if (isWeekdayMarketHours()) load(false);
+    }, 60_000);
     return () => clearInterval(id);
   }, [load]);
 

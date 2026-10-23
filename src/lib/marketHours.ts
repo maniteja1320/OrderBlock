@@ -76,3 +76,16 @@ export function getMarketStatus(now = new Date()): MarketStatus {
 export function isMarketLive(now = new Date()): boolean {
   return getMarketStatus(now).state === "live";
 }
+
+/**
+ * Mon–Fri, 09:15–15:30 IST — ignores the holiday list.
+ * Used to gate auto-refresh polling.
+ */
+export function isWeekdayMarketHours(now = new Date()): boolean {
+  const p = istParts(now);
+  if (p.weekday === "Sat" || p.weekday === "Sun") return false;
+  const mins = p.hour * 60 + p.minute;
+  const open = 9 * 60 + 15;
+  const close = 15 * 60 + 30;
+  return mins >= open && mins < close;
+}

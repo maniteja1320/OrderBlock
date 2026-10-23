@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { isWeekdayMarketHours } from "@/lib/marketHours";
 import type { StructureBoardResponse, StructureCard } from "@/lib/structureBoard";
 import { StockSheet } from "@/components/terminal/StockSheet";
 import { SectorLinesChart } from "./SectorLinesChart";
@@ -187,7 +188,9 @@ export function StructureClient() {
 
   useEffect(() => {
     load(true);
-    const id = setInterval(() => load(false), 60_000);
+    const id = setInterval(() => {
+      if (isWeekdayMarketHours()) load(false);
+    }, 60_000);
     return () => clearInterval(id);
   }, [load]);
 
