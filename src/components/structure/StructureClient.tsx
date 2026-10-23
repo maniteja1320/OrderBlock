@@ -280,10 +280,10 @@ export function StructureClient() {
             </div>
 
             <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-              <div className="overflow-hidden rounded-lg border border-white/10 bg-[#070a10]">
+              <div className="rounded-lg border border-white/10 bg-[#070a10] p-3">
                 <SectorLinesChart sectors={data.sectors} height={360} />
               </div>
-              <div className="grid max-h-[360px] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
+              <div className="grid max-h-[480px] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 lg:max-h-none">
                 {data.cards.map((card) => (
                   <StockTile
                     key={card.symbol}
