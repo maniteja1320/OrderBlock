@@ -169,6 +169,10 @@ export interface SectorFlow {
   sector: string;
   avgStrength: number;
   count: number;
+  /** Names in this sector with one-sided bullish strength. */
+  bullishCount: number;
+  /** Names in this sector with one-sided bearish strength. */
+  bearishCount: number;
   netSide: Side | "neutral";
 }
 

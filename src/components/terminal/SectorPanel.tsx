@@ -44,17 +44,25 @@ export function SectorPanel({
                     : ""
                 }`}
               >
-                <span className={active ? "font-medium" : undefined}>
-                  {s.sector}
+                <span
+                  className={`min-w-0 truncate ${active ? "font-medium" : ""}`}
+                >
+                  {s.sector}{" "}
+                  <span className="tabular-nums text-emerald-600">
+                    {s.bullishCount}↑
+                  </span>{" "}
+                  <span className="tabular-nums text-red-600">
+                    {s.bearishCount}↓
+                  </span>
                 </span>
                 <span
-                  className={
+                  className={`shrink-0 tabular-nums ${
                     s.avgStrength > 0
                       ? "font-medium text-emerald-600"
                       : s.avgStrength < 0
                         ? "font-medium text-red-600"
                         : "text-[var(--muted)]"
-                  }
+                  }`}
                 >
                   {s.avgStrength > 0 ? "+" : ""}
                   {s.avgStrength.toFixed(2)}

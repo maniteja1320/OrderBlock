@@ -123,7 +123,14 @@ function sectorFlows(quotes: StockQuote[]): SectorFlow[] {
       const avgStrength = v.count ? v.sum / v.count : 0;
       const netSide: Side | "neutral" =
         avgStrength > 0.02 ? "bullish" : avgStrength < -0.02 ? "bearish" : "neutral";
-      return { sector, avgStrength, count: v.count, netSide };
+      return {
+        sector,
+        avgStrength,
+        count: v.count,
+        bullishCount: v.bull,
+        bearishCount: v.bear,
+        netSide,
+      };
     })
     .sort((a, b) => b.avgStrength - a.avgStrength);
 }
