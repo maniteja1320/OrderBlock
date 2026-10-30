@@ -14,6 +14,9 @@ interface YahooChartResult {
       close?: Array<number | null>;
       volume?: Array<number | null>;
     }>;
+    adjclose?: Array<{
+      adjclose?: Array<number | null>;
+    }>;
   };
   meta?: {
     regularMarketPrice?: number;
@@ -56,23 +59,43 @@ export function parseCandles(result: YahooChartResult | null): Candle[] {
   if (!result?.timestamp?.length) return [];
   const q = result.indicators?.quote?.[0];
   if (!q) return [];
+  const adj = result.indicators?.adjclose?.[0]?.adjclose;
+  const lastIdx = result.timestamp.length - 1;
 
   const candles: Candle[] = [];
   for (let i = 0; i < result.timestamp.length; i++) {
     const open = q.open?.[i];
     const high = q.high?.[i];
     const low = q.low?.[i];
-    const close = q.close?.[i];
     if (
       open == null ||
       high == null ||
       low == null ||
-      close == null ||
       !Number.isFinite(open) ||
-      !Number.isFinite(close)
+      !Number.isFinite(high) ||
+      !Number.isFinite(low)
     ) {
       continue;
     }
+
+    // Yahoo sometimes leaves the latest daily close null overnight after the
+    // session; keep the bar using adjclose / last price / mid-range fallbacks.
+    let close = q.close?.[i];
+    if (close == null || !Number.isFinite(close)) {
+      const adjClose = adj?.[i];
+      if (adjClose != null && Number.isFinite(adjClose)) {
+        close = adjClose;
+      } else if (
+        i === lastIdx &&
+        result.meta?.regularMarketPrice != null &&
+        Number.isFinite(result.meta.regularMarketPrice)
+      ) {
+        close = result.meta.regularMarketPrice;
+      } else {
+        close = (high + low) / 2;
+      }
+    }
+
     candles.push({
       time: result.timestamp[i],
       open,
@@ -107,6 +130,45 @@ export async function fetchIntraday1m(symbol: string): Promise<{
 export async function fetchDaily(symbol: string): Promise<Candle[]> {
   const result = await fetchChart(symbol, "1d", "3mo");
   return parseCandles(result);
+}
+
+/** In-memory daily history cache (SMA200 scans). Keyed by symbol + IST day. */
+const dailyHistoryCache = new Map<
+  string,
+  { day: string; at: number; candles: Candle[] }
+>();
+
+function istDayKey(now = new Date()) {
+  return now.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+}
+
+/** ~1y daily bars — enough for SMA200; cached per IST day. */
+export async function fetchDailyHistory(
+  symbol: string,
+  force = false,
+): Promise<Candle[]> {
+  const day = istDayKey();
+  const hit = dailyHistoryCache.get(symbol);
+  // Reuse same-day bars for up to 20 minutes (last bar still “live” enough for scan)
+  if (
+    !force &&
+    hit &&
+    hit.day === day &&
+    Date.now() - hit.at < 20 * 60_000 &&
+    hit.candles.length >= 200
+  ) {
+    return hit.candles;
+  }
+
+  const result = await Promise.race([
+    fetchChart(symbol, "1d", "1y"),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 12_000)),
+  ]);
+  const candles = parseCandles(result);
+  if (candles.length) {
+    dailyHistoryCache.set(symbol, { day, at: Date.now(), candles });
+  }
+  return candles;
 }
 
 export async function fetchIntraday5m(symbol: string): Promise<Candle[]> {
