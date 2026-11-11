@@ -18,7 +18,7 @@ const HOLIDAYS_2026 = new Set([
   "2026-12-25",
 ]);
 
-function istParts(date = new Date()) {
+export function getIstClock(date = new Date()) {
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata",
     year: "numeric",
@@ -40,6 +40,21 @@ function istParts(date = new Date()) {
     minute: Number(parts.minute),
     second: Number(parts.second),
   };
+}
+
+function istParts(date = new Date()) {
+  return getIstClock(date);
+}
+
+export function isNseHoliday(date = new Date()): boolean {
+  return HOLIDAYS_2026.has(istParts(date).date);
+}
+
+/** Weekday that is not on the local holiday list. */
+export function isTradingSessionDay(date = new Date()): boolean {
+  const p = istParts(date);
+  if (p.weekday === "Sat" || p.weekday === "Sun") return false;
+  return !HOLIDAYS_2026.has(p.date);
 }
 
 export function getMarketStatus(now = new Date()): MarketStatus {

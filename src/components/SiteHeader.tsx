@@ -10,8 +10,9 @@ const links = [
   { href: "/structure", label: "Structure" },
   { href: "/smart-money", label: "Smart Money" },
   { href: "/journal", label: "Journal" },
-  { href: "/learn", label: "Learn" },
-  { href: "/community", label: "Community" },
+  { href: "/market-data", label: "Market Data" },
+  { href: "/tradefinder", label: "TradeFinder" },
+  { href: "/chartink", label: "Chartink" },
   { href: "/updates", label: "Updates" },
   { href: "/about", label: "About" },
 ];

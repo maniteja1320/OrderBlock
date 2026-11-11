@@ -173,12 +173,16 @@ export function StockSheet({
               <Badge tone={side === "bullish" ? "bull" : "bear"}>
                 {side.toUpperCase()}
               </Badge>
-              {s?.buildUp && s.buildUp !== "NEUTRAL" && (
+              {s?.buildUp && (
                 <Badge
                   tone={
-                    s.buildUp.includes("LONG") || s.buildUp.includes("COVERING")
+                    s.buildUp === "LONG BUILD-UP" ||
+                    s.buildUp === "SHORT COVERING"
                       ? "bull"
-                      : "bear"
+                      : s.buildUp === "SHORT BUILD-UP" ||
+                          s.buildUp === "LONG UNWINDING"
+                        ? "bear"
+                        : "muted"
                   }
                 >
                   {s.buildUp}
@@ -237,13 +241,13 @@ export function StockSheet({
                   }
                 />
                 <Metric
-                  label="OI"
+                  label="OI vs open"
                   value={
                     s?.oiChangePct != null
                       ? `${s.oiChangePct >= 0 ? "+" : ""}${s.oiChangePct.toFixed(1)}%`
                       : "N/A"
                   }
-                  sub={s?.oi != null ? formatOi(s.oi) : "NSE unavailable"}
+                  sub={s?.oi != null ? formatOi(s.oi) : "Upstox unavailable"}
                   tone={
                     s?.oiChangePct == null
                       ? "muted"
@@ -456,14 +460,16 @@ function Badge({
   tone,
 }: {
   children: React.ReactNode;
-  tone: "bull" | "bear";
+  tone: "bull" | "bear" | "muted";
 }) {
   return (
     <span
       className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
         tone === "bull"
           ? "bg-emerald-500/15 text-emerald-500"
-          : "bg-red-500/15 text-red-500"
+          : tone === "bear"
+            ? "bg-red-500/15 text-red-500"
+            : "bg-[var(--surface-2)] text-[var(--muted)]"
       }`}
     >
       {children}
