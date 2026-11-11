@@ -64,7 +64,7 @@ export default function HomePage() {
             </p>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
               See Actual Order Block & Liquidity
-            </h1>
+          </h1>
             <ul className="mt-6 space-y-2 text-[var(--muted)]">
               <li>• Institutional Level Order Block</li>
               <li>• Find Liquidity Traps Early</li>
@@ -278,7 +278,7 @@ function Feature({ title, body }: { title: string; body: string }) {
     <div>
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{body}</p>
-    </div>
+        </div>
   );
 }
 

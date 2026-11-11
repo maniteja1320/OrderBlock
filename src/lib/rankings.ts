@@ -6,7 +6,7 @@ import {
   pctVsVwap,
 } from "./analytics";
 import { getMarketStatus } from "./marketHours";
-import { fetchFuturesOi } from "./nseOi";
+import { fetchSymbolFuturesOi } from "./upstox";
 import { detectOrderBlocks, buildLevels, todayCandles } from "./orderBlock";
 import { analyzeSmartMoney } from "./smartMoney";
 import { averageDailyMove, buildQuote } from "./strength";
@@ -220,9 +220,10 @@ export async function getStockDetail(symbol: string): Promise<StockDetail | null
       fetchIntraday5m(meta.symbol),
     ]);
 
+  // Upstox futures OI — allow a bit longer than NSE (instrument map + quote).
   const oi = await Promise.race([
-    fetchFuturesOi(meta.symbol),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1600)),
+    fetchSymbolFuturesOi(meta.symbol),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
   ]);
 
   const quote = buildQuote(meta, m1, previousClose, last, avgDailyMove);
@@ -250,7 +251,11 @@ export async function getStockDetail(symbol: string): Promise<StockDetail | null
   const rr = computeRiskReward(current?.confirmed ? current : undefined, levels, side);
   const board = getSymbolBoardContext(meta.symbol);
   const oiChangePct = oi?.oiChangePct ?? null;
-  const buildUp = classifyBuildUp(quote.changePct, oiChangePct);
+  const intradayPct =
+    quote.open > 0
+      ? ((quote.last - quote.open) / quote.open) * 100
+      : null;
+  const buildUp = classifyBuildUp(quote.changePct, oiChangePct, intradayPct);
 
   const boardSide = board?.boardSide ?? side;
   const isPick = board?.isPick ?? false;

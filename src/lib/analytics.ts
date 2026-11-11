@@ -21,19 +21,32 @@ export function computeVwap(candles: Candle[]): number | null {
   return pv / vol;
 }
 
+/**
+ * OI build-up / covering labels.
+ * `changePct` = vs previous close. `intradayPct` = vs today's open.
+ * LONG/SHORT BUILD-UP require day side and intraday side to agree, so a
+ * gap-fade (green vs yesterday, red vs open) cannot be LONG BUILD-UP, and a
+ * recovery (red vs yesterday, green vs open) cannot be SHORT BUILD-UP.
+ * Covering / unwinding still follow day change + OI only.
+ */
 export function classifyBuildUp(
   changePct: number,
   oiChangePct: number | null,
+  intradayPct: number | null = null,
 ): BuildUp {
   if (oiChangePct == null || !Number.isFinite(oiChangePct)) return "NEUTRAL";
   const priceUp = changePct > 0.15;
   const priceDown = changePct < -0.15;
   const oiUp = oiChangePct > 0.5;
   const oiDown = oiChangePct < -0.5;
+  const intraKnown =
+    intradayPct != null && Number.isFinite(intradayPct);
+  const intraUp = !intraKnown || intradayPct! > 0.15;
+  const intraDown = !intraKnown || intradayPct! < -0.15;
 
-  if (priceUp && oiUp) return "LONG BUILD-UP";
+  if (priceUp && oiUp && intraUp) return "LONG BUILD-UP";
   if (priceUp && oiDown) return "SHORT COVERING";
-  if (priceDown && oiUp) return "SHORT BUILD-UP";
+  if (priceDown && oiUp && intraDown) return "SHORT BUILD-UP";
   if (priceDown && oiDown) return "LONG UNWINDING";
   return "NEUTRAL";
 }

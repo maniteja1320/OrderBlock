@@ -33,18 +33,23 @@ interface Swing {
   kind: "high" | "low";
 }
 
-function swings(candles: Candle[]): Swing[] {
+function swings(candles: Candle[], lookback = 1): Swing[] {
+  const lb = Math.max(1, lookback);
   const out: Swing[] = [];
-  for (let i = 1; i < candles.length - 1; i++) {
+  for (let i = lb; i < candles.length - lb; i++) {
     const c = candles[i];
-    const l = candles[i - 1];
-    const r = candles[i + 1];
-    if (c.high >= l.high && c.high >= r.high) {
-      out.push({ i, time: c.time, price: c.high, kind: "high" });
+    let isHigh = true;
+    let isLow = true;
+    for (let k = 1; k <= lb; k++) {
+      if (c.high < candles[i - k]!.high || c.high < candles[i + k]!.high) {
+        isHigh = false;
+      }
+      if (c.low > candles[i - k]!.low || c.low > candles[i + k]!.low) {
+        isLow = false;
+      }
     }
-    if (c.low <= l.low && c.low <= r.low) {
-      out.push({ i, time: c.time, price: c.low, kind: "low" });
-    }
+    if (isHigh) out.push({ i, time: c.time, price: c.high, kind: "high" });
+    if (isLow) out.push({ i, time: c.time, price: c.low, kind: "low" });
   }
   return out;
 }
@@ -54,7 +59,10 @@ function swings(candles: Candle[]): Swing[] {
  * BOS = break of last structural high/low in trend direction.
  * CHOCH = first opposing break after an established trend.
  */
-export function readStructure(candles: Candle[]): StructureRead {
+export function readStructure(
+  candles: Candle[],
+  opts?: { lookback?: number; asOfUnix?: number },
+): StructureRead {
   const empty: StructureRead = {
     event: "NONE",
     direction: null,
@@ -66,15 +74,20 @@ export function readStructure(candles: Candle[]): StructureRead {
     displacement: false,
     bias: "neutral",
   };
-  if (candles.length < 8) return empty;
 
-  const sw = swings(candles);
+  let bars = candles;
+  if (opts?.asOfUnix != null) {
+    bars = bars.filter((c) => c.time <= opts.asOfUnix!);
+  }
+  if (bars.length < 8) return empty;
+
+  const sw = swings(bars, opts?.lookback ?? 1);
   const highs = sw.filter((s) => s.kind === "high");
   const lows = sw.filter((s) => s.kind === "low");
   if (highs.length < 2 || lows.length < 2) return empty;
 
-  const last = candles[candles.length - 1];
-  const open = candles[0].open;
+  const last = bars[bars.length - 1]!;
+  const open = bars[0]!.open;
   const dayBias: Side | "neutral" =
     last.close > open * 1.002
       ? "bullish"
@@ -94,19 +107,19 @@ export function readStructure(candles: Candle[]): StructureRead {
   let hiPtr = 0;
   let loPtr = 0;
 
-  for (let i = 2; i < candles.length; i++) {
-    while (hiPtr + 1 < highs.length && highs[hiPtr + 1].i <= i) {
+  for (let i = 2; i < bars.length; i++) {
+    while (hiPtr + 1 < highs.length && highs[hiPtr + 1]!.i <= i) {
       hiPtr += 1;
-      lastHigh = highs[hiPtr];
+      lastHigh = highs[hiPtr]!;
     }
-    while (loPtr + 1 < lows.length && lows[loPtr + 1].i <= i) {
+    while (loPtr + 1 < lows.length && lows[loPtr + 1]!.i <= i) {
       loPtr += 1;
-      lastLow = lows[loPtr];
+      lastLow = lows[loPtr]!;
     }
 
-    const c = candles[i];
-    const brokeHigh = c.close > lastHigh.price;
-    const brokeLow = c.close < lastLow.price;
+    const c = bars[i]!;
+    const brokeHigh = c.close > lastHigh!.price;
+    const brokeLow = c.close < lastLow!.price;
 
     if (brokeHigh && !brokeLow) {
       if (trend === "down") {
@@ -144,24 +157,24 @@ export function readStructure(candles: Candle[]): StructureRead {
           : highs[highs.length - 1];
 
   const liquiditySwept =
-    liquidity.kind === "high"
-      ? candles.slice(liquidity.i + 1).some((c) => c.close > liquidity.price)
-      : candles.slice(liquidity.i + 1).some((c) => c.close < liquidity.price);
+    liquidity!.kind === "high"
+      ? bars.slice(liquidity!.i + 1).some((c) => c.close > liquidity!.price)
+      : bars.slice(liquidity!.i + 1).some((c) => c.close < liquidity!.price);
 
   const distPct =
-    liquidity.price > 0
-      ? ((last.close - liquidity.price) / liquidity.price) * 100
+    liquidity!.price > 0
+      ? ((last.close - liquidity!.price) / liquidity!.price) * 100
       : null;
 
   // Displacement: event bar range large vs recent average
   let displacement = false;
   if (eventIdx >= 0) {
-    const ranges = candles
+    const ranges = bars
       .slice(Math.max(0, eventIdx - 12), eventIdx)
       .map((c) => c.high - c.low);
     const avg =
       ranges.reduce((a, b) => a + b, 0) / Math.max(1, ranges.length) || 0;
-    const er = candles[eventIdx].high - candles[eventIdx].low;
+    const er = bars[eventIdx]!.high - bars[eventIdx]!.low;
     displacement = avg > 0 && er >= avg * 1.8;
   }
 
@@ -177,7 +190,7 @@ export function readStructure(candles: Candle[]): StructureRead {
     direction,
     timeLabel: eventTime != null ? istTimeLabel(eventTime) : null,
     eventTime,
-    liquidityPrice: liquidity.price,
+    liquidityPrice: liquidity!.price,
     liquiditySwept,
     distPct,
     displacement,
